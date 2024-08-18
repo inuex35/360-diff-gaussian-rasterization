@@ -123,13 +123,15 @@ __device__ float3 computesphericalCov2D(const float3& mean, float focal_x, float
     
     float3 t = transformPoint4x3(mean, viewmatrix);
     
-    float t_length = sqrtf(t.x * t.x + t.y * t.y + t.z * t.z);
+    float w = focal_x * 8;
+    float h = focal_y * 8;
 
-    float3 t_unit_focal = {0.0f, 0.0f, t_length};
-	glm::mat3 J = glm::mat3(
-		focal_x / t_unit_focal.z, 0.0f, -(focal_x * t_unit_focal.x) / (t_unit_focal.z * t_unit_focal.z),
-		0.0f, focal_x / t_unit_focal.z, -(focal_x * t_unit_focal.y) / (t_unit_focal.z * t_unit_focal.z),
-		0, 0, 0);
+    float tr = sqrt(t.x * t.x + t.y * t.y + t.z * t.z);
+
+    glm::mat3 J = glm::mat3(
+        w / (2 * M_PI)  * t.z / (t.x * t.x + t.z * t.z), 0.0f, -w / (2 * M_PI)  * t.x / (t.x * t.x + t.z * t.z),
+        -h / M_PI * (t.x * t.y) / (tr * tr * sqrt(t.x * t.x + t.z * t.z)), h / M_PI * sqrt(t.x * t.x + t.z * t.z) / (tr * tr), -h / M_PI * (t.z * t.y) / (tr * tr * sqrt(t.x * t.x + t.z * t.z)),
+        0.0f, 0.0f, 0.0f);
 
     glm::mat3 W = glm::mat3(
         viewmatrix[0], viewmatrix[4], viewmatrix[8],

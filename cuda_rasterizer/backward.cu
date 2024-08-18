@@ -287,6 +287,9 @@ __global__ void computesphericalCov2DCUDA(int P,
 	float* dL_dcov)
 {
 	auto idx = cg::this_grid().thread_rank();
+    float w = h_x * 8;
+    float h = h_y * 8;
+    
 	if (idx >= P || !(radii[idx] > 0))
 		return;
 
@@ -299,15 +302,13 @@ __global__ void computesphericalCov2DCUDA(int P,
 	float3 dL_dconic = { dL_dconics[4 * idx], dL_dconics[4 * idx + 1], dL_dconics[4 * idx + 3] };
     float3 t = transformPoint4x3(mean, view_matrix);
     
-    float t_length = sqrtf(t.x * t.x + t.y * t.y + t.z * t.z);
+    float tr = sqrt(t.x * t.x + t.y * t.y + t.z * t.z);
 
-    float3 t_unit_focal = {0.0f, 0.0f, t_length};
-
-	glm::mat3 J = glm::mat3(
-		h_x / t_unit_focal.z, 0.0f, -(h_x * t_unit_focal.x) / (t_unit_focal.z * t_unit_focal.z),
-		0.0f, h_x / t_unit_focal.z, -(h_x * t_unit_focal.y) / (t_unit_focal.z * t_unit_focal.z),
-		0, 0, 0);
-
+    glm::mat3 J = glm::mat3(
+        w / (2 * M_PI)  * t.z / (t.x * t.x + t.z * t.z), 0.0f, -w / (2 * M_PI)  * t.x / (t.x * t.x + t.z * t.z),
+        -h / M_PI * (t.x * t.y) / (tr * tr * sqrt(t.x * t.x + t.z * t.z)), h / M_PI * sqrt(t.x * t.x + t.z * t.z) / (tr * tr), -h / M_PI * (t.z * t.y) / (tr * tr * sqrt(t.x * t.x + t.z * t.z)),
+        0.0f, 0.0f, 0.0f);
+        
 	glm::mat3 W = glm::mat3(
 		view_matrix[0], view_matrix[4], view_matrix[8],
 		view_matrix[1], view_matrix[5], view_matrix[9],
