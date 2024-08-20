@@ -188,7 +188,7 @@ __forceinline__ __device__ bool in_sphere(int idx,
 {
     float3 p_orig = { orig_points[3 * idx], orig_points[3 * idx + 1], orig_points[3 * idx + 2] };
 	p_view = point_to_equirect(p_orig, viewmatrix);
-	if (p_view.z <= 0.2f || p_view.z <= 100.0f)// || ((p_proj.x < -1.3 || p_proj.x > 1.3 || p_proj.y < -1.3 || p_proj.y > 1.3)))
+	if (p_view.z <= 0.2f || p_view.z >= 100.0f)// || ((p_proj.x < -1.3 || p_proj.x > 1.3 || p_proj.y < -1.3 || p_proj.y > 1.3)))
 	{
 		if (prefiltered)
 		{
